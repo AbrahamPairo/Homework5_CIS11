@@ -1,88 +1,86 @@
-; manager.asm
+section .data
+MAX_INTEGERS equ 100                 ; Maximum number of integers
+
+section .bss                         ; No global arrays here
+
+section .text
 global manager
 extern input_array
 extern output_array
 extern find_largest
 extern printf
 
-SECTION .data
-MAX_INTEGERS:     dq 100
-fmtMgrWelcome:    db "The manager is here to assist you.", 10, 0
-fmtNoLargest:     db "Error! No integers were entered, so no largest exists.", 10, 0
-fmtBeforeOutput:  db "The following integers were received:", 10, 0
-fmtLargestReport: db "The largest value %ld has been found at index %ld", 10, 0
-fmtReturn:        db "The manager will now return the count to the driver.", 10, 0
-
-SECTION .text
 manager:
-    ; Prologue + alineación para llamadas (16B)
-    push rbp                    ; (rsp%16 era 8 al entrar) -> 0
-    mov  rbp, rsp
-    push rbx                    ; -> rsp%16 = 8
-    sub  rsp, 808               ; 800 bytes array + 8 de padding -> rsp%16 = 0
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 8 * MAX_INTEGERS     ; Reserve space for 100 long integers
 
-    ; Mensaje de bienvenida del manager
-    lea  rdi, [rel fmtMgrWelcome]
-    xor  rax, rax
-    call printf
+    ; --- Print initial message ---
+    lea     rdi, [rel msg_manager]
+    xor     rax, rax
+    call    printf
 
-    ; Llamar a input_array(arr_ptr, MAX_INTEGERS)
-    mov  rdi, rsp               ; puntero al array en stack (800 bytes)
-    mov  rsi, [rel MAX_INTEGERS]
-    call input_array
-    mov  rbx, rax               ; RBX = count (preservado)
+    ; --- Call input_array(array, MAX_INTEGERS) ---
+    lea     rdi, [rbp - 8 * MAX_INTEGERS]   ; Address of array
+    mov     rsi, MAX_INTEGERS
+    call    input_array
+    mov     rbx, rax                        ; Save returned count in RBX
 
-    cmp  rbx, 0
-    je   .no_ints
+    ; --- If no integers were entered ---
+    cmp     rbx, 0
+    jne     .has_input
+    lea     rdi, [rel msg_no_input]
+    xor     rax, rax
+    call    printf
+    jmp     .return_driver
 
-    ; Aviso antes de mostrar el arreglo
-    lea  rdi, [rel fmtBeforeOutput]
-    xor  rax, rax
-    call printf
+.has_input:
+    ; --- Print the following integers message ---
+    lea     rdi, [rel msg_before_output]
+    xor     rax, rax
+    call    printf
 
-    ; Imprimir arreglo
-    mov  rdi, rsp               ; arr
-    mov  rsi, rbx               ; count
-    call output_array
+    ; --- Call output_array(array, count) ---
+    lea     rdi, [rbp - 8 * MAX_INTEGERS]
+    mov     rsi, rbx
+    call    output_array
 
-    ; Buscar índice del mayor
-    mov  rdi, rsp               ; arr
-    mov  rsi, rbx               ; count
-    call find_largest           ; RAX = index
-    mov  rcx, rax               ; RCX = index
+    ; --- Call find_largest(array, count) ---
+    lea     rdi, [rbp - 8 * MAX_INTEGERS]
+    mov     rsi, rbx
+    call    find_largest
+    mov     rcx, rax                      ; RCX = index of largest number
 
-    ; Cargar valor mayor arr[index] (64-bit)
-    mov  rdx, rcx
-    shl  rdx, 3                 ; *8
-    mov  rsi, [rsp + rdx]       ; RSI = valor mayor (long)
-    mov  rdx, rcx               ; RDX = índice (long)
+    ; --- Load the largest number from array ---
+    mov     rax, [rbp - 8 * MAX_INTEGERS + rcx*8]
 
-    ; Reporte del mayor
-    lea  rdi, [rel fmtLargestReport]
-    xor  rax, rax
-    call printf
+    ; --- Print the largest value message ---
+    lea     rdi, [rel msg_largest]
+    mov     rsi, rax                      ; first %ld = value
+    mov     rdx, rcx                      ; second %ld = index
+    xor     rax, rax
+    call    printf
 
-    ; Mensaje de retorno al driver
-    lea  rdi, [rel fmtReturn]
-    xor  rax, rax
-    call printf
+.return_driver:
+    ; --- Print return message ---
+    lea     rdi, [rel msg_return]
+    xor     rax, rax
+    call    printf
 
-    ; Return: count
-    mov  rax, rbx
-    add  rsp, 808
-    pop  rbx
-    pop  rbp
+    ; --- Return count in RAX ---
+    mov     rax, rbx
+    mov     rsp, rbp
+    pop     rbp
     ret
 
-.no_ints:
-    lea  rdi, [rel fmtNoLargest]
-    xor  rax, rax
-    call printf
-    lea  rdi, [rel fmtReturn]
-    xor  rax, rax
-    call printf
-    mov  rax, rbx               ; 0
-    add  rsp, 808
-    pop  rbx
-    pop  rbp
-    ret
+
+; ----------------------------
+; Data section for messages
+; ----------------------------
+section .rodata
+    msg_manager:       db "The manager is here to assist you.", 10, 0
+    msg_no_input:      db "Error! No integers were entered, so no largest exists.", 10, 0
+    msg_before_output: db "The following integers were received:", 10, 0
+    msg_largest:       db "The largest value %ld has been found at index %ld", 10, 0
+    msg_return:        db "The manager will now return the count to the driver.", 10, 0
+

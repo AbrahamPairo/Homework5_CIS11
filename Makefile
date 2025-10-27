@@ -1,40 +1,35 @@
-# Makefile — CIS-11 HW5 "The Largest Number"
-CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -O2 -fno-pie
-LDFLAGS := -no-pie
-NASM := nasm
-NASMFLAGS := -f elf64
+# Makefile for 'The Largest Number' assignment
+ASM_SOURCES = manager.asm output_array.asm find_largest.asm
+CPP_SOURCES = largest.cpp input_array.cpp
+ASM_OBJECTS = $(ASM_SOURCES:.asm=.o)
+CPP_OBJECTS = $(CPP_SOURCES:.cpp=.o)
+OBJECTS     = $(ASM_OBJECTS) $(CPP_OBJECTS)
+CXXFLAGS    = -std=c++17
+ASFLAGS     = -f elf64
 
-OBJS := largest.o manager.o input_array.o output_array.o find_largest.o
-
-# Default: compila y enlaza (no corre)
+# Default target: compile and link the program into 'main'
 all: main
 
-# Enlace final -> ejecutable "main"
-main: $(OBJS)
-	$(CXX) -std=c++17 $(LDFLAGS) -o $@ $(OBJS)
+# Build target (alias for the default target)
+build: main
 
-# C++
-largest.o: largest.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+# Link all object files to produce the executable
+main: $(OBJECTS)
+	@g++ -std=c++17 -no-pie -o main $(OBJECTS)
 
-input_array.o: input_array.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+# Compile C++ source files into object files
+%.o: %.cpp
+	@g++ -std=c++17 -c $< -o $@
 
-# Assembly (NASM)
-manager.o: manager.asm
-	$(NASM) $(NASMFLAGS) -o $@ $<
+# Assemble assembly source files into object files
+%.o: %.asm
+	@nasm -f elf64 $< -o $@
 
-output_array.o: output_array.asm
-	$(NASM) $(NASMFLAGS) -o $@ $<
-
-find_largest.o: find_largest.asm
-	$(NASM) $(NASMFLAGS) -o $@ $<
-
-# Ejecutar
+# Run the program (for convenience in local testing)
 run: main
-	./main
+	@./main
 
-# Limpiar
+# Clean up compiled objects and the executable
 clean:
-	rm -f $(OBJS) main
+	@rm -f $(OBJECTS) main
+

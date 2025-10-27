@@ -1,40 +1,31 @@
 #include <iostream>
-#include <string>
+#include <limits>
 
-extern "C" long input_array(long* arr, long max) {
-    std::cout << "Input your integer data one line at a time and enter 'q' when finished" << std::endl;
-
+extern "C" long input_array(long* array, long max) {
+    std::cout << "Input your integer data one line at a time and enter 'q' when finished" 
+              << std::endl;
     long count = 0;
-    bool endedOnNonsense = false;
-
     while (count < max) {
         std::cout << "Enter the next integer: ";
-        std::cout.flush();
-
-        long number;
-        if (!(std::cin >> number)) {
-            endedOnNonsense = true;
-            if (!std::cin.eof()) {            // consumir token inválido (p. ej. 'q')
-                std::cin.clear();
-                std::string dummy;
-                std::cin >> dummy;
-            }
+        long value;
+        if (!(std::cin >> value)) {
+            // Non-integer input encountered (or EOF); assume user is done
+            std::cin.clear();
+            std::string dummy;
+            std::getline(std::cin, dummy);       // discard the invalid input
             break;
         }
-
-        arr[count++] = number;
-        std::cout << "You entered: " << number << std::endl;
-
+        array[count++] = value;
+        std::cout << "You entered: " << value << std::endl;
         if (count < max) {
-            std::cout << "You can enter up to " << (max - count) << " more integers" << std::endl;
-        } else {
-            break; // alcanzado límite
+            std::cout << "You can enter up to " << (max - count) << " more integers" 
+                      << std::endl;
         }
     }
-
-    if (endedOnNonsense) {
+    if (std::cin.fail()) {
         std::cout << "You have entered nonsense! Assuming you are done." << std::endl;
     }
-    std::cout << "Total numbers entered: " << count << std::endl;
+    std::cout << "Total numbers entered: " << count << std::endl << std::endl;
     return count;
 }
+
