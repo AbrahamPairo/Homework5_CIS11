@@ -1,38 +1,45 @@
-NASM = nasm
-GPP  = g++
-NASMFLAGS = -f elf64 -g -F dwarf
-CPPFLAGS  = -c -m64 -Wall -std=c++17
+# Makefile for Homework 5 - The Largest Number
+# Author: Abraham Pairo
+# Class: CIS-11
+# Professor: Peralta
 
-OBJECTS = largest.o input_array.o manager.o output_array.o find_largest.o
+# Compiler and assembler options
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O0 -fno-pie -no-pie
+ASM = nasm
+ASMFLAGS = -f elf64
 
-all: main
+# Target executable
+TARGET = main
 
-# Compile C++ sources
+# Object files
+OBJS = largest.o manager.o input_array.o output_array.o find_largest.o
+
+# Default build target (used by Gradescope)
+build: $(TARGET)
+
+# Link all object files into final executable
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+
+# Compile C++ source files
 largest.o: largest.cpp
-	$(GPP) $(CPPFLAGS) largest.cpp -o largest.o
+	$(CXX) $(CXXFLAGS) -c largest.cpp
 
 input_array.o: input_array.cpp
-	$(GPP) $(CPPFLAGS) input_array.cpp -o input_array.o
+	$(CXX) $(CXXFLAGS) -c input_array.cpp
 
-# Assemble ASM sources
+# Assemble ASM files
 manager.o: manager.asm
-	$(NASM) $(NASMFLAGS) manager.asm -o manager.o
+	$(ASM) $(ASMFLAGS) -o manager.o manager.asm
 
 output_array.o: output_array.asm
-	$(NASM) $(NASMFLAGS) output_array.asm -o output_array.o
+	$(ASM) $(ASMFLAGS) -o output_array.o output_array.asm
 
 find_largest.o: find_largest.asm
-	$(NASM) $(NASMFLAGS) find_largest.asm -o find_largest.o
+	$(ASM) $(ASMFLAGS) -o find_largest.o find_largest.asm
 
-# Link all objects into executable 'main'
-main: $(OBJECTS)
-	$(GPP) -m64 -std=c++17 -o main $(OBJECTS)
-
-# Run the program (if desired)
-run: main
-	./main
-
-# Clean up build artifacts
+# Clean build artifacts
 clean:
-	rm -f $(OBJECTS) main
+	rm -f *.o $(TARGET)
 
