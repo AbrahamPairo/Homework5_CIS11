@@ -1,35 +1,38 @@
-# Makefile for 'The Largest Number' assignment
-ASM_SOURCES = manager.asm output_array.asm find_largest.asm
-CPP_SOURCES = largest.cpp input_array.cpp
-ASM_OBJECTS = $(ASM_SOURCES:.asm=.o)
-CPP_OBJECTS = $(CPP_SOURCES:.cpp=.o)
-OBJECTS     = $(ASM_OBJECTS) $(CPP_OBJECTS)
-CXXFLAGS    = -std=c++17
-ASFLAGS     = -f elf64
+NASM = nasm
+GPP  = g++
+NASMFLAGS = -f elf64 -g -F dwarf
+CPPFLAGS  = -c -m64 -Wall -std=c++17
 
-# Default target: compile and link the program into 'main'
+OBJECTS = largest.o input_array.o manager.o output_array.o find_largest.o
+
 all: main
 
-# Build target (alias for the default target)
-build: main
+# Compile C++ sources
+largest.o: largest.cpp
+	$(GPP) $(CPPFLAGS) largest.cpp -o largest.o
 
-# Link all object files to produce the executable
+input_array.o: input_array.cpp
+	$(GPP) $(CPPFLAGS) input_array.cpp -o input_array.o
+
+# Assemble ASM sources
+manager.o: manager.asm
+	$(NASM) $(NASMFLAGS) manager.asm -o manager.o
+
+output_array.o: output_array.asm
+	$(NASM) $(NASMFLAGS) output_array.asm -o output_array.o
+
+find_largest.o: find_largest.asm
+	$(NASM) $(NASMFLAGS) find_largest.asm -o find_largest.o
+
+# Link all objects into executable 'main'
 main: $(OBJECTS)
-	@g++ -std=c++17 -no-pie -o main $(OBJECTS)
+	$(GPP) -m64 -std=c++17 -o main $(OBJECTS)
 
-# Compile C++ source files into object files
-%.o: %.cpp
-	@g++ -std=c++17 -c $< -o $@
-
-# Assemble assembly source files into object files
-%.o: %.asm
-	@nasm -f elf64 $< -o $@
-
-# Run the program (for convenience in local testing)
+# Run the program (if desired)
 run: main
-	@./main
+	./main
 
-# Clean up compiled objects and the executable
+# Clean up build artifacts
 clean:
-	@rm -f $(OBJECTS) main
+	rm -f $(OBJECTS) main
 

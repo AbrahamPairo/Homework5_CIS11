@@ -1,30 +1,36 @@
-; find_largest.asm
 global find_largest
 
-SECTION .text
-; RDI = arr (long*), RSI = count (long)
+section .text
 find_largest:
+    ; rdi = pointer to array (long*)
+    ; rsi = count of integers (long)
     push rbp
     mov  rbp, rsp
+    push rbx            ; preserve rbx (callee-saved register)
 
-    ; maxVal = arr[0]; maxIdx = 0; i = 1;
-    mov  rax, [rdi]       ; rax = maxVal (long)
-    xor  rdx, rdx         ; rdx = maxIdx = 0
-    mov  rcx, 1           ; i = 1
+    ; Precondition: rsi (count) >= 1 (manager ensures this)
+    xor  rcx, rcx       ; rcx = current index (start at 0)
+    mov  rbx, rdi       ; rbx = base address of array
+    mov  rdx, rsi       ; rdx = total count
+    mov  rax, [rbx]     ; rax = current maximum value (array[0])
+    xor  r8, r8         ; r8  = current index of max (0)
 
-.loop:
-    cmp  rcx, rsi
-    jge  .done
-    mov  r8, [rdi + rcx*8]    ; r8 = arr[i] (long)
-    cmp  r8, rax              ; signed compare
-    jle  .skip
-    mov  rax, r8              ; maxVal = arr[i]
-    mov  rdx, rcx             ; maxIdx = i
-.skip:
+.next:
     inc  rcx
-    jmp  .loop
+    cmp  rcx, rdx
+    jge  .done          ; exit loop when index == count
+
+    mov  r9, [rbx + rcx*8]   ; r9 = array[rcx]
+    cmp  r9, rax
+    jle  .next               ; if current value <= max, continue loop
+
+    mov  rax, r9             ; update current max value
+    mov  r8, rcx             ; update index of current max
+    jmp  .next
 
 .done:
-    mov  rax, rdx             ; return index
+    mov  rax, r8        ; set return value (index of largest)
+    pop  rbx            ; restore rbx
     pop  rbp
     ret
+

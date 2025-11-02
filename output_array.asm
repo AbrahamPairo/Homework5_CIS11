@@ -1,55 +1,82 @@
-; output_array.asm
 global output_array
 extern printf
 
-SECTION .data
-fmtCount:     db "(%ld integers) ", 0
-fmtCommaSp:   db ", ", 0
-fmtLong:      db "%ld", 0
-fmtNL:        db 10, 0
+section .data
+    plural_fmt db "(%ld integers) ", 0
+    single_fmt db "(%ld integer) ", 0
+    num_fmt    db "%ld", 0
+    comma_fmt  db ", ", 0
+    nl         db 10, 0
 
-SECTION .text
+section .text
 output_array:
-    push rbp              ; entrada: RDI=arr (long*), RSI=count (long)
+    ; rdi = pointer to array (long*)
+    ; rsi = count of integers (long)
+    push rbp
     mov  rbp, rsp
-    push rbx
-    sub  rsp, 8           ; alinear para llamadas (rsp%16 = 0)
+    push rbx        ; save callee-saved registers
+    push r12
+    push r13
+    push r14
 
-    mov  rbx, rdi         ; arr
-    mov  rcx, rsi         ; count
+    mov  r12, rdi   ; r12 = base address of array
+    mov  r13, rsi   ; r13 = count of integers
 
-    ; "(N integers) "
-    lea  rdi, [rel fmtCount]
-    mov  rsi, rcx
+    ; Print the count with correct pluralization in parentheses
+    cmp  r13, 1
+    jne  .plural
+    lea  rdi, [rel single_fmt]      ; use singular format if count == 1
+    jmp  .print_count
+.plural:
+    lea  rdi, [rel plural_fmt]      ; use plural format otherwise
+.print_count:
+    mov  rsi, r13
     xor  rax, rax
     call printf
 
-    xor  rdx, rdx         ; idx = 0
+    ; If no integers (count == 0), end (though manager avoids calling this in that case)
+    test r13, r13
+    jz   .done
+
+    ; Print the first integer (no comma before the first number)
+    mov  rbx, 0
+    mov  r14, [r12 + rbx*8]        ; r14 = array[0]
+    lea  rdi, [rel num_fmt]
+    mov  rsi, r14
+    xor  rax, rax
+    call printf
+    inc  rbx
+
 .loop:
-    cmp  rdx, rcx
-    jge  .done
-    cmp  rdx, 0
-    je   .print_value
-    ; ", "
-    lea  rdi, [rel fmtCommaSp]
+    cmp  rbx, r13
+    jge  .done                     ; loop until rbx == count
+
+    ; Print comma + space separator
+    lea  rdi, [rel comma_fmt]
     xor  rax, rax
     call printf
-.print_value:
-    lea  rdi, [rel fmtLong]
-    mov  r8, rdx
-    shl  r8, 3            ; offset = idx * 8
-    mov  rsi, [rbx + r8]  ; valor long
+
+    ; Print the next number
+    mov  r14, [r12 + rbx*8]
+    lea  rdi, [rel num_fmt]
+    mov  rsi, r14
     xor  rax, rax
     call printf
-    inc  rdx
+
+    inc  rbx
     jmp  .loop
 
 .done:
-    lea  rdi, [rel fmtNL]
+    ; Print newline at end of the line
+    lea  rdi, [rel nl]
     xor  rax, rax
     call printf
 
-    add  rsp, 8
+    ; Restore registers and return
+    pop  r14
+    pop  r13
+    pop  r12
     pop  rbx
     pop  rbp
     ret
+

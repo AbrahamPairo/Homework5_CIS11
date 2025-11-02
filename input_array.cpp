@@ -1,31 +1,39 @@
+#include <cstdio>
 #include <iostream>
-#include <limits>
+#include <string>
+using namespace std;
 
-extern "C" long input_array(long* array, long max) {
-    std::cout << "Input your integer data one line at a time and enter 'q' when finished" 
-              << std::endl;
+extern "C" {
+    long input_array(long* arr, long max);
+}
+
+extern "C" long input_array(long* arr, long max) {
+    // Disable stdout buffering for consistent autograder capture
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
     long count = 0;
+    long value;
+
+    printf("Input your integer data one line at a time and enter 'q' when finished\n");
+
     while (count < max) {
-        std::cout << "Enter the next integer: ";
-        long value;
-        if (!(std::cin >> value)) {
-            // Non-integer input encountered (or EOF); assume user is done
-            std::cin.clear();
-            std::string dummy;
-            std::getline(std::cin, dummy);       // discard the invalid input
-            break;
-        }
-        array[count++] = value;
-        std::cout << "You entered: " << value << std::endl;
-        if (count < max) {
-            std::cout << "You can enter up to " << (max - count) << " more integers" 
-                      << std::endl;
-        }
+        printf("Enter the next integer: ");
+        if (!(cin >> value)) break;
+
+        arr[count] = value;
+        printf("You entered: %ld\n", value);
+        printf("You can enter up to %ld more integers\n", max - count - 1);
+        count++;
     }
-    if (std::cin.fail()) {
-        std::cout << "You have entered nonsense! Assuming you are done." << std::endl;
+
+    if (cin.fail()) {
+        cin.clear();
+        string junk;
+        cin >> junk;
+        printf("You have entered nonsense! Assuming you are done.\n");
     }
-    std::cout << "Total numbers entered: " << count << std::endl << std::endl;
+
+    printf("Total numbers entered: %ld\n", count);
     return count;
 }
 
