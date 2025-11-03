@@ -1,36 +1,54 @@
-global find_largest
+# find_largest.asm — scan array for largest and report
+.intel_syntax noprefix
+.global find_largest
+.extern printf
 
-section .text
+.section .rodata
+fmt: .asciz "The largest value %ld has been found at index %ld\n"
+
+.section .text
 find_largest:
-    ; rdi = pointer to array (long*)
-    ; rsi = count of integers (long)
+    # args: RDI = long* arr, RSI = long count
     push rbp
     mov  rbp, rsp
-    push rbx            ; preserve rbx (callee-saved register)
+    push rbx
 
-    ; Precondition: rsi (count) >= 1 (manager ensures this)
-    xor  rcx, rcx       ; rcx = current index (start at 0)
-    mov  rbx, rdi       ; rbx = base address of array
-    mov  rdx, rsi       ; rdx = total count
-    mov  rax, [rbx]     ; rax = current maximum value (array[0])
-    xor  r8, r8         ; r8  = current index of max (0)
+    mov  rbx, rdi
+    mov  rcx, rsi
 
-.next:
-    inc  rcx
-    cmp  rcx, rdx
-    jge  .done          ; exit loop when index == count
+    cmp  rcx, 1
+    jl   .print_zero
 
-    mov  r9, [rbx + rcx*8]   ; r9 = array[rcx]
+    # max = arr[0], idx = 0
+    mov  rax, [rbx]
+    xor  rdx, rdx
+    xor  r8,  r8
+    inc  r8
+
+.loop:
+    cmp  r8, rcx
+    jge  .print
+    mov  r9, [rbx + r8*8]
     cmp  r9, rax
-    jle  .next               ; if current value <= max, continue loop
+    jle  .next
+    mov  rax, r9
+    mov  rdx, r8
+.next:
+    inc  r8
+    jmp  .loop
 
-    mov  rax, r9             ; update current max value
-    mov  r8, rcx             ; update index of current max
-    jmp  .next
-
-.done:
-    mov  rax, r8        ; set return value (index of largest)
-    pop  rbx            ; restore rbx
+.print:
+    lea  rdi, [rel fmt]
+    mov  rsi, rax     # largest
+    # rdx already index
+    xor  eax, eax
+    call printf
+    pop  rbx
     pop  rbp
     ret
 
+.print_zero:
+    # empty or negative count — print 0, index -1
+    mov  rax, 0
+    mov  rdx, -1
+    jmp  .print

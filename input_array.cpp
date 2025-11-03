@@ -1,39 +1,27 @@
-#include <cstdio>
 #include <iostream>
+#include <limits>
 #include <string>
-using namespace std;
+using std::cin; using std::cout; using std::string;
 
-extern "C" {
-    long input_array(long* arr, long max);
-}
-
-extern "C" long input_array(long* arr, long max) {
-    // Disable stdout buffering for consistent autograder capture
-    setvbuf(stdout, nullptr, _IONBF, 0);
-
-    long count = 0;
-    long value;
-
-    printf("Input your integer data one line at a time and enter 'q' when finished\n");
-
-    while (count < max) {
-        printf("Enter the next integer: ");
-        if (!(cin >> value)) break;
-
-        arr[count] = value;
-        printf("You entered: %ld\n", value);
-        printf("You can enter up to %ld more integers\n", max - count - 1);
-        count++;
+extern "C" long input_array(long* a, long max) {
+    cout << "Input your integer data one line at a time and enter 'q' when finished\n";
+    long n = 0;
+    while (n < max) {
+        cout << "Enter the next integer: ";
+        long x;
+        if (cin >> x) {
+            cout << "You entered: " << x << "\n";
+            a[n++] = x;
+            cout << "You can enter up to " << (max - n) << " more integers\n";
+        } else {
+            cin.clear();
+            string junk;
+            cin >> junk;
+            cout << "You have entered nonsense! Assuming you are done.\n";
+            break;
+        }
     }
-
-    if (cin.fail()) {
-        cin.clear();
-        string junk;
-        cin >> junk;
-        printf("You have entered nonsense! Assuming you are done.\n");
-    }
-
-    printf("Total numbers entered: %ld\n", count);
-    return count;
+    cout << "Total numbers entered: " << n << "\n";
+    return n;
 }
 
