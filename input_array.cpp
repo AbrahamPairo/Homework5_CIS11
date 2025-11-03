@@ -1,26 +1,22 @@
-// input_array.cpp
 #include <iostream>
-#include <string>
+using std::cin; using std::cout; using std::endl;
 
-// grader looks for this exact prototype (with ;)
-extern "C" long input_array(long*, long);
+extern "C" long input_array(long* data, long max) {
+    long n{};
+    cout << "Enter the number of ints: ";
+    if (!(cin >> n) || n < 0) return 0;
+    if (n > max) n = max;
 
-// C linkage ONLY for the function, not for the headers
-extern "C" long input_array(long* a, long cap) {
-    long count = 0;
-    while (count < cap) {
-        std::cout << "Enter the next integer: ";
-        long x;
-        if (!(std::cin >> x)) {
-            std::cin.clear();
-            std::string junk;
-            std::getline(std::cin, junk);
-            std::cout << "You have entered nonsense! Assuming you are done." << std::endl;
-            break;
+    for (long i = 0; i < n; ++i) {
+        cout << "Enter the next integer: ";
+        long v{};
+        while (!(cin >> v)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Bad input, try again: ";
         }
-        a[count++] = x;
+        data[i] = v;     // will segfault only if 'data' wasn’t a real address
     }
-    std::cout << "Total numbers entered: " << count << std::endl;
-    return count;
+    return n;
 }
 
