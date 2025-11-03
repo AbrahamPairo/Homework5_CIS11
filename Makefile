@@ -1,34 +1,25 @@
-# CIS-11 HW5 – build without NASM; keep .asm files for source scan
+# CIS-11 HW5 – build only the C++ version (Gradescope has no nasm)
+
 CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O0 -fno-pie -no-pie
 
-TARGET = main
-OBJS   = largest.o manager_cpp.o input_array.o output_array_cpp.o find_largest_cpp.o
+TARGET   = main
+SRCS     = largest.cpp manager.cpp input_array.cpp output_array.cpp find_largest.cpp
+OBJS     = $(SRCS:.cpp=.o)
+
+.PHONY: build clean run
 
 build: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
 
-largest.o: largest.cpp
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-manager_cpp.o: manager.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-input_array.o: input_array.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-output_array_cpp.o: output_array.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-find_largest_cpp.o: find_largest.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+clean:
+	rm -f $(OBJS) $(TARGET)
 
 run: build
 	./$(TARGET)
 
-clean:
-	rm -f $(TARGET) *.o
-
-.PHONY: build run clean

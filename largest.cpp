@@ -1,5 +1,6 @@
 #include <iostream>
-extern "C" long manager();
+
+extern "C" { long manager(); }
 
 int main() {
     long the_count = manager();
