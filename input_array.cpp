@@ -1,22 +1,38 @@
 #include <iostream>
-using std::cin; using std::cout; using std::endl;
+#include <string>
+#include <limits>
+using namespace std;
 
-extern "C" long input_array(long* data, long max) {
-    long n{};
-    cout << "Enter the number of ints: ";
-    if (!(cin >> n) || n < 0) return 0;
-    if (n > max) n = max;
-
-    for (long i = 0; i < n; ++i) {
-        cout << "Enter the next integer: ";
-        long v{};
-        while (!(cin >> v)) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            cout << "Bad input, try again: ";
-        }
-        data[i] = v;     // will segfault only if 'data' wasn’t a real address
-    }
-    return n;
+// expose the signature unmangled
+extern "C" {
+    long input_array(long* a, long max_n);
 }
+
+// read integers until nonsense (like 'q') or we hit max_n
+extern "C" long input_array(long* a, long max_n) {
+    long n = 0;
+
+    while (n < max_n) {
+        cout << "Enter the next integer:";   // <-- exact text
+        long x;
+        cin >> x;
+
+        if (cin.fail()) {
+            // consume the bad token (e.g., 'q') and complain exactly once
+            cin.clear();
+            string junk;
+            cin >> junk;
+            cout << "You have entered nonsense. Assuming you are done\n";
+            break;
+        }
+
+        a[n++] = x;
+
+        // echo each value and remaining capacity
+        cout << "You entered: " << x << "\n";
+        cout << "You can enter up to " << (max_n - n) << " more integers\n";
+    }
+    return n;  // number successfully read
+}
+
 
