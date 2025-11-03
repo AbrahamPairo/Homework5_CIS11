@@ -1,4 +1,3 @@
-# build with C++ shims (no NASM required)
 CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O0 -fno-pie -no-pie
 

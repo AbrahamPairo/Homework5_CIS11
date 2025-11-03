@@ -1,13 +1,15 @@
-#include <iostream>
-#include <string>
+extern "C" long input_array(long*, long);  // prototype for grader
 
 extern "C" {
+    #include <iostream>
+    #include <string>
+
     long input_array(long* a, long cap) {
         long count = 0;
         while (count < cap) {
             std::cout << "Enter the next integer: ";
             long x;
-            if (!(std::cin >> x)) {            // cin.fail() check
+            if (!(std::cin >> x)) {
                 std::cin.clear();
                 std::string junk;
                 std::getline(std::cin, junk);

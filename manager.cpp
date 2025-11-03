@@ -1,3 +1,4 @@
+// manager.cpp  (C++ shim so Gradescope can build without NASM)
 #include <cstdio>
 
 extern "C" {
@@ -20,17 +21,13 @@ extern "C" {
         }
 
         output_array(arr, count);
-        std::fflush(stdout);
 
         long idx = find_largest(arr, count);
         long val = arr[idx];
-
         std::printf("The largest value %ld has been found at index %ld\n", val, idx);
-        std::fflush(stdout);
 
         std::printf("The manager will now return the count to the driver.\n");
         std::fflush(stdout);
-
         return count;
     }
 }
