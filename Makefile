@@ -1,25 +1,30 @@
-# CIS-11 HW5 – build only the C++ version (Gradescope has no nasm)
-
+# build with C++ shims (no NASM required)
 CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O0 -fno-pie -no-pie
 
-TARGET   = main
-SRCS     = largest.cpp manager.cpp input_array.cpp output_array.cpp find_largest.cpp
-OBJS     = $(SRCS:.cpp=.o)
+OBJS = largest.o manager_cpp.o input_array.o output_array_cpp.o find_largest_cpp.o
 
-.PHONY: build clean run
+all: main
+build: main
 
-build: $(TARGET)
+main: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o main $(OBJS)
 
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
+largest.o: largest.cpp
+	$(CXX) $(CXXFLAGS) -c largest.cpp -o largest.o
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+manager_cpp.o: manager.cpp
+	$(CXX) $(CXXFLAGS) -c manager.cpp -o manager_cpp.o
+
+input_array.o: input_array.cpp
+	$(CXX) $(CXXFLAGS) -c input_array.cpp -o input_array.o
+
+output_array_cpp.o: output_array.cpp
+	$(CXX) $(CXXFLAGS) -c output_array.cpp -o output_array_cpp.o
+
+find_largest_cpp.o: find_largest.cpp
+	$(CXX) $(CXXFLAGS) -c find_largest.cpp -o find_largest_cpp.o
 
 clean:
-	rm -f $(OBJS) $(TARGET)
-
-run: build
-	./$(TARGET)
+	rm -f *.o main
 

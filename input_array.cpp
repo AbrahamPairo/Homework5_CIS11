@@ -1,23 +1,23 @@
 #include <iostream>
 #include <string>
 
-extern "C" long input_array(long* a, long max) {
-    long n = 0;
-    while (n < max) {
-        std::cout << "Enter the next integer: ";
-        long x;
-        if (!(std::cin >> x)) {
-            std::cin.clear();
-            std::string trash;
-            std::cin >> trash; // consume the 'q' (or other non-number)
-            std::cout << "You have entered nonsense! Assuming you are done.\n";
-            break;
+extern "C" {
+    long input_array(long* a, long cap) {
+        long count = 0;
+        while (count < cap) {
+            std::cout << "Enter the next integer: ";
+            long x;
+            if (!(std::cin >> x)) {            // cin.fail() check
+                std::cin.clear();
+                std::string junk;
+                std::getline(std::cin, junk);
+                std::cout << "You have entered nonsense! Assuming you are done." << std::endl;
+                break;
+            }
+            a[count++] = x;
         }
-        a[n++] = x;
-        std::cout << "You entered: " << x << "\n";
-        std::cout << "You can enter up to " << (max - n) << " more integers\n";
+        std::cout << "Total numbers entered: " << count << std::endl;
+        return count;
     }
-    std::cout << "Total numbers entered: " << n << "\n";
-    return n;
 }
 
